@@ -71,12 +71,15 @@ public class personaServiceImplTest {
     @Test
     void cuando_actualiza_y_persona_no_existe_deberia_lanzar_exception() {
         var persona = this.crearPersona(10, PRINCIPAL, FECHA_NACIMIENTO);
-        when(personaRepository.findById(persona.getId())).thenReturn(Optional.ofNullable(null));
+        this.configurarPersonaExistente(PRINCIPAL);
+        when(personaRepository.findById(persona.getId())).thenReturn(Optional.of(persona));
 
-        assertThrows(RuntimeException.class, () -> personaServiceImple.create(persona));
+        assertThrows(ObjetoExistenteException.class, () -> personaServiceImple.update(persona));
 
         verify(personaRepository, times(1))
                 .findById(persona.getId());
+        verify(personaRepository, times(1))
+                .findByFullname(PRINCIPAL);
         verify(personaRepository, times(0))
                 .save(persona);
     }
@@ -100,16 +103,16 @@ public class personaServiceImplTest {
     @Test
     void cuando_actualiza_con_mismo_nombre() {
         var persona = this.crearPersona(10, PRINCIPAL, FECHA_NACIMIENTO);
+        this.configurarPersonaExistente(PRINCIPAL);
         when(personaRepository.findById(persona.getId())).thenReturn(Optional.of(persona));
-        when(personaRepository.findByFullname(PRINCIPAL)).thenReturn(Optional.of(persona));
 
-        personaServiceImple.create(persona);
+        assertThrows(ObjetoExistenteException.class, () -> personaServiceImple.update(persona));
 
         verify(personaRepository, times(1))
                 .findById(persona.getId());
         verify(personaRepository, times(1))
                 .findByFullname(PRINCIPAL);
-        verify(personaRepository, times(1))
+        verify(personaRepository, times(0))
                 .save(persona);
     }
 
